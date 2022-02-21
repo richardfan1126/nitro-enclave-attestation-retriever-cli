@@ -2,11 +2,11 @@ import socket
 import json
 import subprocess
 
-def call_attestation_retriever():
-    # Call the standalone nitro-enclave-attestation-retriever-cli through subprocess
+def call_nsm_cli():
+    # Call the standalone nsm-cli through subprocess
     proc = subprocess.Popen(
         [
-            "/app/nitro-enclave-attestation-retriever-cli",
+            "/app/nsm-cli", "attest"
         ],
         stdout=subprocess.PIPE
     )
@@ -42,8 +42,8 @@ def main():
         # Get data sent from parent instance
         payload = c.recv(65536)
 
-        # Get attestation document from nitro-enclave-attestation-retriever-cli
-        content = call_attestation_retriever()
+        # Get attestation document from nsm-cli
+        content = call_nsm_cli()
 
         # Send the response back to parent instance
         c.send(str.encode(json.dumps(content)))

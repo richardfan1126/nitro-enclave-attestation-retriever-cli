@@ -1,5 +1,5 @@
 [package]
-name = "nitro-enclave-attestation-retriever-cli"
+name = "nsm-cli"
 version = "0.1.0"
 authors = ["Richard Fan <richardfan1126@gmail.com>"]
 edition = "2021"

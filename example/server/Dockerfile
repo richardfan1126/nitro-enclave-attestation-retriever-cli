@@ -1,5 +1,5 @@
 FROM ubuntu:latest AS builder
-WORKDIR /root/nitro-enclave-attestation-retriever-cli
+WORKDIR /root/nsm-cli
 ARG ARCH
 
 # Ensure the architecture is set
@@ -37,6 +37,6 @@ COPY example/server/run.sh ./
 RUN chmod +x run.sh
 
 # Copy the Rust compiled binary from previous image
-COPY --from=builder /root/nitro-enclave-attestation-retriever-cli/target/${ARCH}-unknown-linux-musl/release/nitro-enclave-attestation-retriever-cli .
+COPY --from=builder /root/nsm-cli/target/${ARCH}-unknown-linux-musl/release/nsm-cli .
 
 CMD ["/app/run.sh"]
