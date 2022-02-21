@@ -1,6 +1,6 @@
 use clap::Parser;
 use serde_bytes::ByteBuf;
-use nsm_io::Request;
+use nsm_io::{Request, Response};
 
 #[derive(Parser)]
 struct Cli {
@@ -47,7 +47,13 @@ fn main() {
     };
 
     let response = nsm_driver::nsm_process_request(nsm_fd, request);
-    println!("{:?}", response);
-
+    
+    let attestation_document = match response {
+        Response::Attestation{document} => document,
+        _ => unreachable!()
+    };
+    
+    print!("{}", base64::encode(attestation_document));
+    
     nsm_driver::nsm_exit(nsm_fd);
 }
