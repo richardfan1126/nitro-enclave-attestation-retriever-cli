@@ -1,4 +1,4 @@
-FROM rust:latest AS builder
+FROM rust:latest
 WORKDIR /root/nsm-cli
 ARG ARCH
 
@@ -18,25 +18,3 @@ COPY Cargo.toml ./
 COPY src ./src
 
 RUN cargo build --release --target=${ARCH}-unknown-linux-musl
-
-
-
-FROM amazonlinux
-WORKDIR /app
-ARG ARCH
-
-# Install python for running the server
-RUN yum install python3 -y
-
-COPY example/server/requirements.txt ./
-RUN pip3 install -r /app/requirements.txt
-
-COPY example/server/server.py ./
-COPY example/server/run.sh ./
-
-RUN chmod +x run.sh
-
-# Copy the Rust compiled binary from previous image
-COPY --from=builder /root/nsm-cli/target/${ARCH}-unknown-linux-musl/release/nsm-cli .
-
-CMD ["/app/run.sh"]

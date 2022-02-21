@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 rm nsm-cli-demo.eif
 docker rmi -f nsm-cli-demo:latest
 docker build ../.. -f Dockerfile --build-arg ARCH=$(uname -m) -t nsm-cli-demo:latest
