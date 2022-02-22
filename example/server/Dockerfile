@@ -21,12 +21,12 @@ RUN cargo build --release --target=${ARCH}-unknown-linux-musl
 
 
 
-FROM amazonlinux
+FROM python:slim
 WORKDIR /app
 ARG ARCH
 
-# Install python for running the server
-RUN yum install python3 -y
+# Install gcc for compiling pycryptodome
+RUN apt update && apt install -y gcc
 
 COPY example/server/requirements.txt ./
 RUN pip3 install -r /app/requirements.txt

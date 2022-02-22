@@ -2,7 +2,10 @@
 
 set -e
 
+if [[ -f nsm-cli-demo.eif ]]; then
 rm nsm-cli-demo.eif
+fi
+
 docker rmi -f nsm-cli-demo:latest
 docker build ../.. -f Dockerfile --build-arg ARCH=$(uname -m) -t nsm-cli-demo:latest
 

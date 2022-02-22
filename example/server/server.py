@@ -1,15 +1,33 @@
 import socket
 import json
+import base64
 import subprocess
 
-def call_nsm_cli():
+from Crypto.PublicKey import RSA
+
+def call_nsm_cli(input):
+    cmd = ["/app/nsm-cli", "attest"]
+
+    if "public-key" in input:
+        cmd += ["--public-key", input["public-key"]]
+
+    if "public-key-b64" in input:
+        cmd += ["--public-key-b64", input["public-key-b64"]]
+
+    if "user-data" in input:
+        cmd += ["--user-data", input["user-data"]]
+
+    if "user-data-b64" in input:
+        cmd += ["--user-data-b64", input["user-data-b64"]]
+
+    if "nonce" in input:
+        cmd += ["--nonce", input["nonce"]]
+
+    if "nonce-b64" in input:
+        cmd += ["--nonce-b64", input["nonce-b64"]]
+
     # Call the standalone nsm-cli through subprocess
-    proc = subprocess.Popen(
-        [
-            "/app/nsm-cli", "attest"
-        ],
-        stdout=subprocess.PIPE
-    )
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
     result = proc.communicate()[0]
 
@@ -17,6 +35,12 @@ def call_nsm_cli():
     return {
         'AttestationDocument': result.decode()
     }
+
+def generate_rsa_keypair():
+    private_key = RSA.generate(2048)
+    public_key = private_key.publickey()
+
+    return private_key, public_key
 
 def main():
     print("Starting server...")
@@ -41,9 +65,15 @@ def main():
 
         # Get data sent from parent instance
         payload = c.recv(65536)
+        request = json.loads(payload.decode())
+
+        # Generate RSA keypair
+        private_key, public_key = generate_rsa_keypair()
+
+        request['public-key-b64'] = base64.b64encode(public_key.export_key('DER')).decode()
 
         # Get attestation document from nsm-cli
-        content = call_nsm_cli()
+        content = call_nsm_cli(request)
 
         # Send the response back to parent instance
         c.send(str.encode(json.dumps(content)))

@@ -12,40 +12,41 @@ struct Cli {
 enum Commands {
     /// Generate attestation document
     Attest {
-        #[clap(short='p', long="public-key-b64", help="(Optional) Base64-encoded DER format public key the attestation consumer can use to encrypt data with", required=false, takes_value=true)]
+        /// (Optional) DER format public key the attestation consumer can use to encrypt data with
+        #[clap(short, long, required=false, takes_value=true)]
+        public_key: Option<String>,
+
+        /// (Optional) Base64-encoded DER format public key the attestation consumer can use to encrypt data with
+        #[clap(long, required=false, takes_value=true, conflicts_with="public-key")]
         public_key_b64: Option<String>,
     
-        #[clap(short='u', long="user-data-b64", help="(Optional) Base64-encoded additional signed user data", required=false, takes_value=true)]
-        user_data_b64: Option<String>,
+        /// (Optional) Additional signed user data
+        #[clap(short, long, required=false, takes_value=true)]
+        user_data: Option<String>,
     
-        #[clap(short='n', long="nonce-b64", help="(Optional) Base64-encoded cryptographic nonce provided by the attestation consumer as a proof of authenticity", required=false, takes_value=true)]
+        /// (Optional) Base64-encoded additional signed user data
+        #[clap(long, required=false, takes_value=true, conflicts_with="user-data")]
+        user_data_b64: Option<String>,
+        
+        /// (Optional) Cryptographic nonce provided by the attestation consumer as a proof of authenticity
+        #[clap(short, long, required=false, takes_value=true)]
+        nonce: Option<String>,
+        
+        /// (Optional) Base64-encoded cryptographic nonce provided by the attestation consumer as a proof of authenticity
+        #[clap(long, required=false, takes_value=true, conflicts_with="nonce")]
         nonce_b64: Option<String>,
+    },
+
+    /// Generate random bytes from NSM
+    GetRandom {
+        /// Byte length of the random data (Maximum 256 bytes)
+        #[clap(short, long, required=true, takes_value=true)]
+        length: u8,
     }
 }
 
-fn attest(public_key_b64: &Option<String>, user_data_b64: &Option<String>, nonce_b64: &Option<String>) {
+fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option<ByteBuf>) {
     let nsm_fd = nsm_driver::nsm_init();
-
-    let mut public_key:Option<ByteBuf> = None;
-    if !public_key_b64.is_none() {
-        let public_key_b64_string = public_key_b64.as_deref().unwrap();
-        let public_key_bytes = base64::decode(public_key_b64_string).unwrap();
-        public_key = Some(ByteBuf::from(public_key_bytes));
-    }
-
-    let mut user_data:Option<ByteBuf> = None;
-    if !user_data_b64.is_none() {
-        let user_data_b64_string = user_data_b64.as_deref().unwrap();
-        let user_data_bytes = base64::decode(user_data_b64_string).unwrap();
-        user_data = Some(ByteBuf::from(user_data_bytes));
-    }
-
-    let mut nonce:Option<ByteBuf> = None;
-    if !nonce_b64.is_none() {
-        let nonce_b64_string = nonce_b64.as_deref().unwrap();
-        let nonce_bytes = base64::decode(nonce_b64_string).unwrap();
-        nonce = Some(ByteBuf::from(nonce_bytes));
-    }
 
     let request = Request::Attestation {
         public_key: public_key,
@@ -55,22 +56,72 @@ fn attest(public_key_b64: &Option<String>, user_data_b64: &Option<String>, nonce
 
     let response = nsm_driver::nsm_process_request(nsm_fd, request);
     
-    let attestation_document = match response {
-        Response::Attestation{document} => document,
-        _ => unreachable!()
-    };
-    
-    print!("{}", base64::encode(attestation_document));
+    match response {
+        Response::Attestation{document} => {
+            print!("{}", base64::encode(document));
+        },
+        _ => {}
+    }
 
     nsm_driver::nsm_exit(nsm_fd);
+}
+
+unsafe fn get_random(byte_length:&u8) {
+    if byte_length < &0 {
+        return;
+    }
+
+    let buf_len: &mut usize = &mut 0;
+
+    let mut buf = vec![0; *byte_length as usize];
+    let buf_ptr = buf.as_mut_ptr();
+    *buf_len = buf.len();
+    
+    let nsm_fd = nsm_driver::nsm_init();
+    let request = Request::GetRandom {};
+    let response = nsm_driver::nsm_process_request(nsm_fd, request);
+
+    match response {
+        Response::GetRandom { random } => {
+            *buf_len = std::cmp::min(*buf_len, random.len());
+            std::ptr::copy_nonoverlapping(random.as_ptr(), buf_ptr, *buf_len);
+            print!("{}", base64::encode(buf));
+        },
+        _ => {}
+    }
+
+    nsm_driver::nsm_exit(nsm_fd);
+}
+
+fn get_byte_buf_from_input(plain_text:&Option<String>, base64:&Option<String>) -> Option<ByteBuf> {
+    let mut result:Option<ByteBuf> = None;
+    if !base64.is_none() {
+        let base64_string = base64.as_ref().unwrap();
+        let result_bytes = base64::decode(base64_string).unwrap();
+        result = Some(ByteBuf::from(result_bytes));
+    } else if !plain_text.is_none() {
+        result = Some(ByteBuf::from(plain_text.as_ref().unwrap().as_bytes()));
+    }
+
+    return result;
 }
 
 fn main() {
     let args = Cli::parse();
 
     match &args.subcmd {
-        Commands::Attest {public_key_b64, user_data_b64, nonce_b64} => {
-            attest(public_key_b64, user_data_b64, nonce_b64);
+        Commands::Attest {public_key, public_key_b64, user_data, user_data_b64, nonce, nonce_b64} => {
+            let public_key_byte_buf = get_byte_buf_from_input(public_key, public_key_b64);
+            let user_data_byte_buf = get_byte_buf_from_input(user_data, user_data_b64);
+            let nonce_byte_buf = get_byte_buf_from_input(nonce, nonce_b64);
+
+            attest(public_key_byte_buf, user_data_byte_buf, nonce_byte_buf);
+        },
+
+        Commands::GetRandom {length} => {
+            unsafe {
+                get_random(length);
+            }
         }
     }
 }

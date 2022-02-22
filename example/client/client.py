@@ -1,4 +1,5 @@
 import sys
+import json
 import socket
 
 def main():
@@ -15,7 +16,10 @@ def main():
     s.connect((cid, port))
 
     # Send command to the server running in enclave
-    s.send(str.encode("dummy"))
+    s.send(str.encode(json.dumps({
+        'user-data': 'dummy-user-data',
+        'nonce': 'dummy-nonce',
+    })))
     
     # receive data from the server
     response = s.recv(65536).decode()
