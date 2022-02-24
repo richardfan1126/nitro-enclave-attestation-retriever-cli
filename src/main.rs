@@ -41,7 +41,7 @@ enum Commands {
     GetRandom {
         /// Byte length of the random data (Maximum 256 bytes)
         #[clap(short, long, required=true, takes_value=true)]
-        length: u8,
+        length: u16,
     }
 }
 
@@ -60,13 +60,20 @@ fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option
         Response::Attestation{document} => {
             print!("{}", base64::encode(document));
         },
-        _ => {}
+        Response::Error(err) => {
+            eprintln!("{:?}", err);
+            std::process::exit(1)
+        },
+        _ => {
+            eprintln!("Something went wrong");
+            std::process::exit(1)
+        }
     }
 
     nsm_driver::nsm_exit(nsm_fd);
 }
 
-unsafe fn get_random(byte_length:&u8) {
+unsafe fn get_random(byte_length:&u16) {
     if byte_length < &0 {
         return;
     }
@@ -87,7 +94,14 @@ unsafe fn get_random(byte_length:&u8) {
             std::ptr::copy_nonoverlapping(random.as_ptr(), buf_ptr, *buf_len);
             print!("{}", base64::encode(buf));
         },
-        _ => {}
+        Response::Error(err) => {
+            eprintln!("{:?}", err);
+            std::process::exit(1)
+        },
+        _ => {
+            eprintln!("Something went wrong");
+            std::process::exit(1)
+        }
     }
 
     nsm_driver::nsm_exit(nsm_fd);
@@ -119,6 +133,11 @@ fn main() {
         },
 
         Commands::GetRandom {length} => {
+            if length > &256 {
+                eprintln!("Length should be within 256 bytes");
+                std::process::exit(1)
+            }
+
             unsafe {
                 get_random(length);
             }
