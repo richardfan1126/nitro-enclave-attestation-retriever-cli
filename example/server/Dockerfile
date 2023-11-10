@@ -21,7 +21,7 @@ RUN cargo build --release --target=${ARCH}-unknown-linux-musl
 
 
 
-FROM python:slim
+FROM python:3.13-rc-slim
 WORKDIR /app
 ARG ARCH
 
