@@ -2,7 +2,10 @@
 
 set -e
 
-ARCH=$(uname -m)
+if [[ -z "${ARCH}" ]]; then
+    echo "Please set environment variable ARCH" >&2
+    exit 1
+fi
 
 docker build . -t nsm-cli --build-arg ARCH=$ARCH
 

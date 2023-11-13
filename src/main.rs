@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use serde_bytes::ByteBuf;
-use nsm_io::{Request, Response};
+use aws_nitro_enclaves_nsm_api::api::{Request, Response};
+use aws_nitro_enclaves_nsm_api::driver::{nsm_init, nsm_exit, nsm_process_request};
 
 #[derive(Parser)]
 struct Cli {
@@ -46,7 +47,7 @@ enum Commands {
 }
 
 fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option<ByteBuf>) {
-    let nsm_fd = nsm_driver::nsm_init();
+    let nsm_fd = nsm_init();
 
     let request = Request::Attestation {
         public_key: public_key,
@@ -54,7 +55,7 @@ fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option
         nonce: nonce,
     };
 
-    let response = nsm_driver::nsm_process_request(nsm_fd, request);
+    let response = nsm_process_request(nsm_fd, request);
     
     match response {
         Response::Attestation{document} => {
@@ -70,7 +71,7 @@ fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option
         }
     }
 
-    nsm_driver::nsm_exit(nsm_fd);
+    nsm_exit(nsm_fd);
 }
 
 unsafe fn get_random(byte_length:&u16) {
@@ -84,9 +85,9 @@ unsafe fn get_random(byte_length:&u16) {
     let buf_ptr = buf.as_mut_ptr();
     *buf_len = buf.len();
     
-    let nsm_fd = nsm_driver::nsm_init();
+    let nsm_fd = nsm_init();
     let request = Request::GetRandom {};
-    let response = nsm_driver::nsm_process_request(nsm_fd, request);
+    let response = nsm_process_request(nsm_fd, request);
 
     match response {
         Response::GetRandom { random } => {
@@ -104,7 +105,7 @@ unsafe fn get_random(byte_length:&u16) {
         }
     }
 
-    nsm_driver::nsm_exit(nsm_fd);
+    nsm_exit(nsm_fd);
 }
 
 fn get_byte_buf_from_input(plain_text:&Option<String>, base64:&Option<String>) -> Option<ByteBuf> {
