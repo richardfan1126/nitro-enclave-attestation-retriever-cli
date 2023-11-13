@@ -14,34 +14,34 @@ enum Commands {
     /// Generate attestation document
     Attest {
         /// (Optional) DER format public key the attestation consumer can use to encrypt data with
-        #[clap(short, long, required=false, takes_value=true)]
+        #[clap(short, long, required=false)]
         public_key: Option<String>,
 
         /// (Optional) Base64-encoded DER format public key the attestation consumer can use to encrypt data with
-        #[clap(long, required=false, takes_value=true, conflicts_with="public-key")]
+        #[clap(long, required=false, conflicts_with="public-key")]
         public_key_b64: Option<String>,
     
         /// (Optional) Additional signed user data
-        #[clap(short, long, required=false, takes_value=true)]
+        #[clap(short, long, required=false)]
         user_data: Option<String>,
     
         /// (Optional) Base64-encoded additional signed user data
-        #[clap(long, required=false, takes_value=true, conflicts_with="user-data")]
+        #[clap(long, required=false, conflicts_with="user-data")]
         user_data_b64: Option<String>,
         
         /// (Optional) Cryptographic nonce provided by the attestation consumer as a proof of authenticity
-        #[clap(short, long, required=false, takes_value=true)]
+        #[clap(short, long, required=false)]
         nonce: Option<String>,
         
         /// (Optional) Base64-encoded cryptographic nonce provided by the attestation consumer as a proof of authenticity
-        #[clap(long, required=false, takes_value=true, conflicts_with="nonce")]
+        #[clap(long, required=false, conflicts_with="nonce")]
         nonce_b64: Option<String>,
     },
 
     /// Generate random bytes from NSM
     GetRandom {
         /// Byte length of the random data (Maximum 256 bytes)
-        #[clap(short, long, required=true, takes_value=true)]
+        #[clap(short, long, required=true)]
         length: u16,
     }
 }

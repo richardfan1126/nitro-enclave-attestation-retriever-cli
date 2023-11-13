@@ -5,7 +5,7 @@ authors = ["Richard Fan <richardfan1126@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-clap = { version = "3.0", features = ["derive"] }
+clap = { version = "4.0", features = ["derive"] }
 base64 = "0.13.0"
 serde_bytes = "0.11"
 aws-nitro-enclaves-nsm-api = "0.4.0"
