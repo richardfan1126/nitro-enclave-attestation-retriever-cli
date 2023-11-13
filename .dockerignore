@@ -2,3 +2,7 @@
 
 !src/
 !Cargo.toml
+!Cargo.lock
+
+# For example server to build successfully
+!example/

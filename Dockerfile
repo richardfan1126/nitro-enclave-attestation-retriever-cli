@@ -15,6 +15,7 @@ RUN rustup target install ${ARCH}-unknown-linux-musl
 
 # Build the Rust application
 COPY Cargo.toml ./
+COPY Cargo.lock ./
 COPY src ./src
 
 RUN cargo build --release --target=${ARCH}-unknown-linux-musl
