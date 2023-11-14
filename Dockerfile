@@ -19,3 +19,4 @@ COPY Cargo.lock ./
 COPY src ./src
 
 RUN cargo build --release --target=${ARCH}-unknown-linux-musl
+RUN strip -s target/${ARCH}-unknown-linux-musl/release/nsm-cli

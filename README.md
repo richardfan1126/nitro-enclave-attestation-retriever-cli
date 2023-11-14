@@ -104,7 +104,4 @@ $ git clone https://github.com/richardfan1126/nitro-enclaves-nsm-cli.git
 # Run the build script
 $ cd nitro-enclaves-nsm-cli
 $ ./build.sh
-
-# (Optional) Discards symbols from compiled binary
-$ strip -s nsm-cli
 ```
