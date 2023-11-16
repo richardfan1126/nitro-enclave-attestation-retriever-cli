@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use serde_bytes::ByteBuf;
 use aws_nitro_enclaves_nsm_api::api::{Request, Response};
-use aws_nitro_enclaves_nsm_api::driver::{nsm_init, nsm_exit, nsm_process_request};
+use aws_nitro_enclaves_nsm_api::driver::{nsm_init as native_nsm_init, nsm_exit, nsm_process_request};
 
 #[derive(Parser)]
 struct Cli {
@@ -46,13 +46,24 @@ enum Commands {
     }
 }
 
+fn nsm_init() -> i32 {
+    let nsm_fd = native_nsm_init();
+
+    if nsm_fd == -1 {
+        eprintln!("nsm-cli must be run inside Nitro Enclave");
+        std::process::exit(1)
+    }
+
+    return nsm_fd;
+}
+
 fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option<ByteBuf>) {
     let nsm_fd = nsm_init();
 
     let request = Request::Attestation {
-        public_key: public_key,
-        user_data: user_data,
-        nonce: nonce,
+        public_key,
+        user_data,
+        nonce,
     };
 
     let response = nsm_process_request(nsm_fd, request);

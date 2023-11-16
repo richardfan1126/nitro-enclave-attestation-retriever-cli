@@ -4,5 +4,5 @@
 !Cargo.toml
 !Cargo.lock
 
-# For example server to build successfully
+# For the example server to build successfully
 !example/
