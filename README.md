@@ -12,16 +12,16 @@ This tool is built on top of [Nitro Secure Module library](https://github.com/aw
 ```
 nsm-cli 
 
-USAGE:
-    nsm-cli <SUBCOMMAND>
+Usage: nsm-cli <COMMAND>
 
-OPTIONS:
-    -h, --help    Print help information
+Commands:
+  attest        Generate attestation document
+  get-random    Generate random bytes from NSM
+  describe-pcr  Get PCR value
+  help          Print this message or the help of the given subcommand(s)
 
-SUBCOMMANDS:
-    attest        Generate attestation document
-    get-random    Generate random bytes from NSM
-    help          Print this message or the help of the given subcommand(s)
+Options:
+  -h, --help  Print help
 ```
 
 ### Attestation document generation
@@ -89,6 +89,27 @@ $ nsm-cli get-random -l 256
 GnEe...eZcQ==
 ```
 
+### Get PCR value
+
+```
+Get PCR value
+
+Usage: nsm-cli describe-pcr --index <INDEX>
+
+Options:
+  -i, --index <INDEX>  The index of PCR
+  -h, --help           Print help
+```
+
+Example:
+
+```
+$ nsm-cli describe-pcr -i 0
+
+# Hex value of the PCR0 returned
+7fb5c55bc2ecbb68ed99a13d7122abfc0666b926a79d5379bc58b9445c84217f59cfdd36c08b2c79552928702efe23e4
+``` 
+
 ## How to build
 
 ### Prerequisite
@@ -97,9 +118,14 @@ Docker
 
 ### Build steps
 
-```
+```bash
 # Clone the repository
 $ git clone https://github.com/richardfan1126/nitro-enclaves-nsm-cli.git
+
+# Specify the CPU architecture of binary to be built
+$ export ARCH=x86_64
+# Or
+$ export ARCH=aarch64
 
 # Run the build script
 $ cd nitro-enclaves-nsm-cli
