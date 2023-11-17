@@ -43,6 +43,13 @@ enum Commands {
         /// Byte length of the random data (Maximum 256 bytes)
         #[clap(short, long, required=true)]
         length: u16,
+    },
+
+    /// Get PCR value
+    DescribePCR {
+        /// The index of PCR
+        #[clap(short, long, required=true)]
+        index: u16,
     }
 }
 
@@ -132,6 +139,27 @@ fn get_byte_buf_from_input(plain_text:&Option<String>, base64:&Option<String>) -
     return result;
 }
 
+fn describe_pcr(index:&u16) {
+    let nsm_fd = nsm_init();
+    let index = index.to_owned();
+    let request = Request::DescribePCR { index };
+    let response = nsm_process_request(nsm_fd, request);
+
+    match response {
+        Response::DescribePCR { lock:_, data } => {
+            print!("{}", hex::encode(data));
+        },
+        Response::Error(err) => {
+            eprintln!("{:?}", err);
+            std::process::exit(1)
+        },
+        _ => {
+            eprintln!("Something went wrong");
+            std::process::exit(1)
+        }
+    }
+}
+
 fn main() {
     let args = Cli::parse();
 
@@ -153,6 +181,15 @@ fn main() {
             unsafe {
                 get_random(length);
             }
+        },
+
+        Commands::DescribePCR {index} => {
+            if index > &31 {
+                eprintln!("Index should not be greater than 31");
+                std::process::exit(1)
+            }
+
+            describe_pcr(index);
         }
     }
 }

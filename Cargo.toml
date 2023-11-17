@@ -9,3 +9,4 @@ clap = { version = "4.0", features = ["derive"] }
 base64 = "0.13.0"
 serde_bytes = "0.11"
 aws-nitro-enclaves-nsm-api = "0.4.0"
+hex = "0.4.3"
