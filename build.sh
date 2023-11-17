@@ -7,9 +7,15 @@ if [[ -z "${ARCH}" ]]; then
     exit 1
 fi
 
-docker build . -t nsm-cli --build-arg ARCH=$ARCH
+if [[ "${ARCH}" = "aarch64" ]]; then
+    DOCKER_ARCH=arm64
+else
+    DOCKER_ARCH=$ARCH
+fi
 
-CONTAINER_ID=$(docker create --rm nsm-cli bash)
+docker build . -t nsm-cli --build-arg ARCH=$ARCH --platform linux/$DOCKER_ARCH
+
+CONTAINER_ID=$(docker create --platform linux/$DOCKER_ARCH --rm nsm-cli bash)
 
 docker cp $CONTAINER_ID:/root/nsm-cli/target/${ARCH}-unknown-linux-musl/release/nsm-cli ./nsm-cli
 docker rm $CONTAINER_ID

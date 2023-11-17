@@ -5,13 +5,8 @@ ARG ARCH
 # Ensure the architecture is set
 RUN [ -z "$ARCH" ] && echo "ARCH is required" && exit 1 || true
 
-# RUN apt-get update && apt-get install gcc curl -y
-
-# # Get Rust
-# RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
-
-# ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup target install ${ARCH}-unknown-linux-musl
+# Add build target
+RUN rustup target add ${ARCH}-unknown-linux-musl
 
 # Build the Rust application
 COPY Cargo.toml ./
