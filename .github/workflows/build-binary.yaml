@@ -2,9 +2,24 @@ name: Build binary
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master
+    paths:
+      - 'src/**'
+      - 'build.sh'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'Dockerfile'
+
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - master
+    paths:
+      - 'src/**'
+      - 'build.sh'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'Dockerfile'
 
 jobs:
   build-x86_64:
