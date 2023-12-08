@@ -64,6 +64,13 @@ fn nsm_init() -> i32 {
     return nsm_fd;
 }
 
+fn error_exit(msg: &str, code: i32, nsm_fd: i32) {
+    eprintln!("{}", msg);
+    nsm_exit(nsm_fd);
+
+    std::process::exit(code);
+}
+
 fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option<ByteBuf>) {
     let nsm_fd = nsm_init();
 
@@ -80,12 +87,10 @@ fn attest(public_key: Option<ByteBuf>, user_data: Option<ByteBuf>, nonce: Option
             print!("{}", base64::encode(document));
         },
         Response::Error(err) => {
-            eprintln!("{:?}", err);
-            std::process::exit(1)
+            error_exit(format!("{:?}", err).as_str(), 1, nsm_fd);
         },
         _ => {
-            eprintln!("Something went wrong");
-            std::process::exit(1)
+            error_exit("Something went wrong", 1, nsm_fd);
         }
     }
 
@@ -114,12 +119,10 @@ unsafe fn get_random(byte_length:&u16) {
             print!("{}", base64::encode(buf));
         },
         Response::Error(err) => {
-            eprintln!("{:?}", err);
-            std::process::exit(1)
+            error_exit(format!("{:?}", err).as_str(), 1, nsm_fd);
         },
         _ => {
-            eprintln!("Something went wrong");
-            std::process::exit(1)
+            error_exit("Something went wrong", 1, nsm_fd);
         }
     }
 
@@ -150,14 +153,14 @@ fn describe_pcr(index:&u16) {
             print!("{}", hex::encode(data));
         },
         Response::Error(err) => {
-            eprintln!("{:?}", err);
-            std::process::exit(1)
+            error_exit(format!("{:?}", err).as_str(), 1, nsm_fd);
         },
         _ => {
-            eprintln!("Something went wrong");
-            std::process::exit(1)
+            error_exit("Something went wrong", 1, nsm_fd);
         }
     }
+
+    nsm_exit(nsm_fd);
 }
 
 fn main() {
